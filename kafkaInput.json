@@ -1,0 +1,46 @@
+//# Kafka topic as input to elasticsearch
+
+/* input {
+  kafka {
+        zk_connect => "192.168.99.101:2181, 192.168.99.102:2181, 192.168.99.103:2181"
+        group_id => "logstash"
+        topic_id => "ravi"
+        reset_beginning => false
+        consumer_threads => 1
+    }
+}
+filter {
+
+}
+output {
+
+} */
+//#######################
+input {
+ kafka {
+   bootstrap_servers => "192.168.99.101:9092"
+   topics => ["ravi"]
+   codec => json
+ }
+}
+
+output {
+ if [@metadata][pipeline] {
+   elasticsearch {
+     hosts => "https://localhost:9200"
+     manage_template => false
+     index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}"
+     pipeline => "%{[@metadata][pipeline]}"
+     user => "elastic"
+     password => "secret"
+   }
+ } else {
+   elasticsearch {
+     hosts => "https://localhost:9200"
+     manage_template => false
+     index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}"
+     user => "elastic"
+     password => "secret"
+   }
+ }
+}
